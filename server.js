@@ -29,9 +29,11 @@ function fetchStatus(code, done) {
       method: 'GET'
     })
     .on('response', function(response) {
+      if (debug) console.log('fetch status success');
       done(null, response.body);
     })
     .on('error', function(err) {
+      if (debug) console.log('fetch status err');
       done(err);
     });
 }
