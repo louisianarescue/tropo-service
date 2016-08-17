@@ -6,6 +6,7 @@ var tropowebapi = require('tropo-webapi')
   , debug = process.env.DEBUG || false
   , statusIdRegex = /\d{5}/
   , port = process.env.PORT || 8000
+  , models = require('./models')
   ;
 
 var messages = {
@@ -39,58 +40,87 @@ function tropoResponse(res, tropo) {
   return res.end(tropowebapi.TropoJSON(tropo));
 }
 
+function doVoiceAnswer(req, res, tropo, phone, call, asnwer) {
+  if (call.state == 0) {
+    // split up into numbers so she doesn't say "whatever thousand whatver"
+    var statusCodeNumbers = result.split('').join(' ');
+
+    tropo.say(message('repeat_back_code') + statusCodeNumbers);
+
+    fetchStatus(result, function(err, body) {
+      if (debug) console.dir(err);
+      if (debug) console.dir(body);
+
+      if (body && body.success) {
+        tropo.say(message('status_report') + body.data.status);
+        //body.data.status;
+        //body.data.rescued_on;
+        //body.data.updated_on;
+      } else {
+        if (body && body.message) {
+          tropo.say(message('status_report') + body.data.status);
+        } else {
+          if (debug) console.log('something went wrong');
+          tropo.say(message('unknown_error'));
+        }
+      }
+
+      return tropoResponse(res, tropo);
+    });
+  } else {
+    // done?
+  }
+}
+function doVoiceStep(req, res, tropo, phone, call) {
+  if (call.state == 0) {
+    tropo.say(message('welcome'));
+
+    // request 5 digit code
+    var say = new Say(message('status_code_prompt_voice'));
+    var choices = new Choices('[5 DIGITS]');
+
+    // Action classes can be passes as parameters to TropoWebAPI class methods.
+    // use the ask method https://www.tropo.com/docs/webapi/ask.htm
+    tropo.ask(choices, 3, false, null, 'status-response', null, true, say, 5, null);
+
+    // use the on method https://www.tropo.com/docs/webapi/on.htm
+    tropo.on('continue', null, '/api/tropo/voice/answer', true);
+    return tropoResponse(res, tropo);
+  }
+}
+
 app.use(bodyParser.json());
 
 app.post('/api/tropo/voice', function(req, res){
   if (debug) console.dir(req.body);
-
+  var phone = req.body.session.from.id;
   var tropo = new tropowebapi.TropoWebAPI();
-  tropo.say(message('welcome'));
 
-  // request 5 digit code
-  var say = new Say(message('status_code_prompt_voice'));
-  var choices = new Choices('[5 DIGITS]');
-
-  // Action classes can be passes as parameters to TropoWebAPI class methods.
-  // use the ask method https://www.tropo.com/docs/webapi/ask.htm
-  tropo.ask(choices, 3, false, null, 'status-response', null, true, say, 5, null);
-
-  // use the on method https://www.tropo.com/docs/webapi/on.htm
-  tropo.on('continue', null, '/api/tropo/voice/answer', true);
-  return tropoResponse(res, tropo);
+  models.findCall(phone, function(err, call) {
+    if (err || !call) {
+      models.createCall({phone: phone, state: 0, type: 'call'}, function (err, call) {
+        return doVoiceStep(req, res, tropo, phone, call)
+      });
+    } else {
+      return doVoiceStep(req, res, tropo, phone, call)
+    }
+  })
 });
 
 app.post('/api/tropo/voice/answer', function(req, res){
   if (debug) console.dir(req.body);
-
+  var phone = req.body.session.from.id;
   var tropo = new tropowebapi.TropoWebAPI();
   var result = req.body.result.actions.interpretation;
 
-  // split up into numbers so she doesn't say "whatever thousand whatver"
-  var statusCodeNumbers = result.split('').join(' ');
-
-  tropo.say(message('repeat_back_code') + statusCodeNumbers);
-
-  fetchStatus(result, function(err, body) {
-    if (debug) console.dir(err);
-    if (debug) console.dir(body);
-
-    if (body && body.success) {
-      tropo.say(message('status_report') + body.data.status);
-      //body.data.status;
-      //body.data.rescued_on;
-      //body.data.updated_on;
+  models.findCall(phone, function(err, call) {
+    if (err || !call) {
+      tropo.say(message('unknown_error'));
+      return tropoResponse(res, tropo);
     } else {
-      if (body && body.message) {
-        tropo.say(message('status_report') + body.data.status);
-      } else {
-        if (debug) console.log('something went wrong');
-        tropo.say(message('unknown_error'));
-      }
+      return doVoiceAnswer(req, res, tropo, phone, call, result)
     }
-
-    return tropoResponse(res, tropo);
-  });
+  })
 });
 
 
@@ -131,3 +161,16 @@ app.post('/api/tropo/text', function(req, res){
 
 app.listen(port);
 console.log('Server running');
+var call = new models.Call({type: 'SMS', phone: '13377945995', state: '1'});
+
+// start everything up
+models.connect(function (err, res) {
+  if (err) {
+    console.dir(err);
+  } else {
+    app.listen(port);
+    console.log('Server running');
+    var call = new models.Call({type: 'SMS', phone: '13377945995', state: '1'});
+    console.dir(call);
+  }
+});
