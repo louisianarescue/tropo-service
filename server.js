@@ -11,7 +11,8 @@ var tropowebapi = require('tropo-webapi')
 var messages = {
   en: {
     welcome: 'You have contacted the Louisiana Rescue status system',
-    status_code_prompt: 'Please enter your 5 digit status code',
+    status_code_prompt_text: 'Please enter your 5 digit status code',
+    status_code_prompt_voice: 'Please say your 5 digit status code or enter the code into your keypad',
     repeat_back_code: 'The status code you entered is ',
     unknown_error: 'Something went wrong, please check that your code is correct and try again in a moment'
   }
@@ -49,7 +50,7 @@ app.post('/api/tropo/voice', function(req, res){
   tropo.say(message('welcome'));
 
   // request 5 digit code
-  var say = new Say(message('status_code_prompt'));
+  var say = new Say(message('status_code_prompt_voice'));
   var choices = new Choices('[5 DIGITS]');
 
   // Action classes can be passes as parameters to TropoWebAPI class methods.
@@ -124,7 +125,7 @@ app.post('/api/tropo/text', function(req, res){
     });
   } else {
     if (debug) console.log('no match for a status id found');
-    tropo.say(message('status_code_prompt'));
+    tropo.say(message('status_code_prompt_text'));
 
     return tropoResponse(res, tropo);
   }
