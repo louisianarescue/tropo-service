@@ -4,6 +4,8 @@ var tropowebapi = require('tropo-webapi')
   , bodyParser = require("body-parser")
   , request = require('request')
   , debug = process.env.DEBUG || false
+  , statusIdRegex = /\d{5}/
+  , port = process.env.PORT || 8000
   ;
 
 var messages = {
@@ -92,7 +94,6 @@ app.post('/api/tropo/voice/answer', function(req, res){
   });
 });
 
-var statusIdRegex = /\d{5}/;
 
 app.post('/api/tropo/text', function(req, res){
   if (debug) console.dir(req.body);
@@ -129,6 +130,5 @@ app.post('/api/tropo/text', function(req, res){
   }
 });
 
-var port = process.env.PORT || 8000;
 app.listen(port);
 console.log('Server running');
