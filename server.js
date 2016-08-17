@@ -85,8 +85,11 @@ function doVoiceAnswer(req, res, tropo, call, answer) {
         }
       }
 
-      models.nextStep(call, console.log); // hope it works :)
-      
+      models.nextStep(call, function(err, call) {
+        if (debug) console.dir(err);
+        if (debug) console.dir(call);
+      }); // hope it works :)
+
       return tropoResponse(res, tropo);
     });
   } else {
