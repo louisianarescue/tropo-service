@@ -14,7 +14,8 @@ var messages = {
     status_code_prompt_text: 'Please enter your 5 digit status code',
     status_code_prompt_voice: 'Please say your 5 digit status code or enter the code into your keypad',
     repeat_back_code: 'The status code you entered is ',
-    unknown_error: 'Something went wrong, please check that your code is correct and try again in a moment'
+    unknown_error: 'Something went wrong, please check that your code is correct and try again in a moment',
+    status_report: 'The status is '
   }
 }
 
@@ -27,16 +28,9 @@ function fetchStatus(code, done) {
       json: true,
       url: 'http://www.louisianarescue.com/api/rescue/check/' + code,
       method: 'GET'
-    })
-    .on('response', function(response) {
-      if (debug) console.log('fetch status success');
-      if (debug) console.dir(response);
-      done(null, response.body);
-    })
-    .on('error', function(err) {
-      if (debug) console.log('fetch status err');
-      if (debug) console.dir(err);
-      done(err);
+    }, function (error, response, body) {
+      if (error) return done(error);
+      done(null, response);
     });
 }
 
@@ -82,13 +76,13 @@ app.post('/api/tropo/voice/answer', function(req, res){
     if (debug) console.dir(body);
 
     if (body && body.success) {
-      tropo.say(body.message);
+      tropo.say(message('status_report') + body.data.status);
       //body.data.status;
       //body.data.rescued_on;
       //body.data.updated_on;
     } else {
       if (body && body.message) {
-        tropo.say(body.message);
+        tropo.say(message('status_report') + body.data.status);
       } else {
         if (debug) console.log('something went wrong');
         tropo.say(message('unknown_error'));
@@ -117,7 +111,7 @@ app.post('/api/tropo/text', function(req, res){
       if (debug) console.dir(body);
 
       if (body && body.success) {
-        tropo.say(body.message);
+        tropo.say(message('status_report') + body.data.status);
         //body.data.status;
         //body.data.rescued_on;
         //body.data.updated_on;
