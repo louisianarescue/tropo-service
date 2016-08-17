@@ -116,7 +116,7 @@ app.post('/api/tropo/voice', function(req, res){
 
 app.post('/api/tropo/voice/answer', function(req, res){
   if (debug) console.dir(req.body);
-  var sessionId = req.body.session.id;
+  var sessionId = req.body.sessionId;
   var tropo = new tropowebapi.TropoWebAPI();
   var result = req.body.result.actions.interpretation;
 
