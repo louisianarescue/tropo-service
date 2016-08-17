@@ -40,10 +40,10 @@ function tropoResponse(res, tropo) {
   return res.end(tropowebapi.TropoJSON(tropo));
 }
 
-function doVoiceAnswer(req, res, tropo, phone, call, asnwer) {
+function doVoiceAnswer(req, res, tropo, call, answer) {
   if (call.state == 0) {
     // split up into numbers so she doesn't say "whatever thousand whatver"
-    var statusCodeNumbers = result.split('').join(' ');
+    var statusCodeNumbers = answer.split('').join(' ');
 
     tropo.say(message('repeat_back_code') + statusCodeNumbers);
 
@@ -116,7 +116,6 @@ app.post('/api/tropo/voice', function(req, res){
 
 app.post('/api/tropo/voice/answer', function(req, res){
   if (debug) console.dir(req.body);
-  var phone = req.body.session.from.id;
   var sessionId = req.body.session.id;
   var tropo = new tropowebapi.TropoWebAPI();
   var result = req.body.result.actions.interpretation;
@@ -126,7 +125,7 @@ app.post('/api/tropo/voice/answer', function(req, res){
       tropo.say(message('unknown_error'));
       return tropoResponse(res, tropo);
     } else {
-      return doVoiceAnswer(req, res, tropo, phone, call, result)
+      return doVoiceAnswer(req, res, tropo, call, result)
     }
   })
 });
