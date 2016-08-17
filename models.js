@@ -4,7 +4,7 @@ var mongoose = require('mongoose')
 
 var Call = mongoose.model('Call', {
   type: String,
-  number: String,
+  phone: String,
   state: Number,
   session: String,
   createdAt: { type: Date, expires: 120, default: Date.now }
@@ -19,14 +19,18 @@ module.exports.createCall = function(data, done) {
 
 module.exports.findCall = function(phone, done) {
   var query = Call.findOne({phone: phone});
-  query.select('number state type session createdAt');
+  query.select('phone state type session createdAt');
   query.exec(done);
 }
 
 module.exports.findCallBySession = function(session, done) {
   var query = Call.findOne({session: session});
-  query.select('number state type session createdAt');
+  query.select('phone state type session createdAt');
   query.exec(done);
+}
+
+module.exports.nextStep = function(call, done) {
+  Call.update({_id: call.id }}, {$inc: {state:1}}, done);
 }
 
 module.exports.createDb = function(done) {

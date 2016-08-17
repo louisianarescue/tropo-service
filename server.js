@@ -40,6 +40,26 @@ function tropoResponse(res, tropo) {
   return res.end(tropowebapi.TropoJSON(tropo));
 }
 
+
+function doVoiceStep(req, res, tropo, phone, call) {
+  if (call.state == 0) {
+    tropo.say(message('welcome'));
+
+    // request 5 digit code
+    var say = new Say(message('status_code_prompt_voice'));
+    var choices = new Choices('[5 DIGITS]');
+
+    // Action classes can be passes as parameters to TropoWebAPI class methods.
+    // use the ask method https://www.tropo.com/docs/webapi/ask.htm
+    tropo.ask(choices, 3, false, null, 'status-response', null, true, say, 5, null);
+
+    // use the on method https://www.tropo.com/docs/webapi/on.htm
+    tropo.on('continue', null, '/api/tropo/voice/answer', true);
+    return tropoResponse(res, tropo);
+  }
+}
+
+
 function doVoiceAnswer(req, res, tropo, call, answer) {
   if (call.state == 0) {
     // split up into numbers so she doesn't say "whatever thousand whatver"
@@ -65,28 +85,12 @@ function doVoiceAnswer(req, res, tropo, call, answer) {
         }
       }
 
+      models.nextStep(call, console.log); // hope it works :)
+      
       return tropoResponse(res, tropo);
     });
   } else {
     // done?
-  }
-}
-
-function doVoiceStep(req, res, tropo, phone, call) {
-  if (call.state == 0) {
-    tropo.say(message('welcome'));
-
-    // request 5 digit code
-    var say = new Say(message('status_code_prompt_voice'));
-    var choices = new Choices('[5 DIGITS]');
-
-    // Action classes can be passes as parameters to TropoWebAPI class methods.
-    // use the ask method https://www.tropo.com/docs/webapi/ask.htm
-    tropo.ask(choices, 3, false, null, 'status-response', null, true, say, 5, null);
-
-    // use the on method https://www.tropo.com/docs/webapi/on.htm
-    tropo.on('continue', null, '/api/tropo/voice/answer', true);
-    return tropoResponse(res, tropo);
   }
 }
 
