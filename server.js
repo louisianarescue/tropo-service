@@ -20,6 +20,14 @@ var messages = {
   }
 }
 
+function isAdminNumber(phone) {
+  return phone == '15043135606'
+}
+
+function isStatusPhone(phone) {
+  return phone == '15043134886'
+}
+
 function message(key) {
   return messages.en[key];
 }
@@ -40,7 +48,6 @@ function tropoResponse(res, tropo) {
   return res.end(tropowebapi.TropoJSON(tropo));
 }
 
-
 function doVoiceStep(req, res, tropo, phone, call) {
   if (call.state == 0) {
     tropo.say(message('welcome'));
@@ -56,9 +63,10 @@ function doVoiceStep(req, res, tropo, phone, call) {
     // use the on method https://www.tropo.com/docs/webapi/on.htm
     tropo.on('continue', null, '/api/tropo/voice/answer', true);
     return tropoResponse(res, tropo);
+  } else {
+    // done?
   }
 }
-
 
 function doVoiceAnswer(req, res, tropo, call, answer) {
   if (call.state == 0) {
@@ -79,16 +87,12 @@ function doVoiceAnswer(req, res, tropo, call, answer) {
       } else {
         if (body && body.message) {
           tropo.say(message('status_report') + body.data.status);
+          models.nextStep(call, console.log); // hope that it works
         } else {
           if (debug) console.log('something went wrong');
           tropo.say(message('unknown_error'));
         }
       }
-
-      models.nextStep(call, function(err, call) {
-        if (debug) console.dir(err);
-        if (debug) console.dir(call);
-      }); // hope it works :)
 
       return tropoResponse(res, tropo);
     });
@@ -102,6 +106,7 @@ app.use(bodyParser.json());
 app.post('/api/tropo/voice', function(req, res){
   if (debug) console.dir(req.body);
   var phone = req.body.session.from.id;
+  var application = isAdminNumber(req.body.session.to.id) ? 'admin' : 'status_report';
   var sessionId = req.body.session.id;
   var tropo = new tropowebapi.TropoWebAPI();
 
@@ -111,7 +116,8 @@ app.post('/api/tropo/voice', function(req, res){
         phone: phone,
         state: 0,
         type: 'call',
-        session: sessionId
+        session: sessionId,
+        application: application
       }, function (err, call) {
         return doVoiceStep(req, res, tropo, phone, call)
       });

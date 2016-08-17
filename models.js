@@ -7,6 +7,7 @@ var Call = mongoose.model('Call', {
   phone: String,
   state: Number,
   session: String,
+  application: String, // 'admin' or 'status_request'
   createdAt: { type: Date, expires: 120, default: Date.now }
 });
 
@@ -19,19 +20,18 @@ module.exports.createCall = function(data, done) {
 
 module.exports.findCall = function(phone, done) {
   var query = Call.findOne({phone: phone});
-  query.select('phone state type session createdAt');
+  query.select('phone application state type session createdAt');
   query.exec(done);
 }
 
 module.exports.findCallBySession = function(session, done) {
   var query = Call.findOne({session: session});
-  query.select('phone state type session createdAt');
+  query.select('phone application state type session createdAt');
   query.exec(done);
 }
 
 module.exports.nextStep = function(call, done) {
-  var nextState = call.state + 1;
-  call.update({state: nextState}, done);
+  Call.update({_id: call.id }, {$inc: {state:1}}, done);
 }
 
 module.exports.connect = function(done) {
