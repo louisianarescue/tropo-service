@@ -30,7 +30,7 @@ function fetchStatus(code, done) {
       method: 'GET'
     }, function (error, response, body) {
       if (error) return done(error);
-      done(null, response);
+      done(null, response.body);
     });
 }
 
