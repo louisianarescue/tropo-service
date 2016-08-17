@@ -71,6 +71,7 @@ function doVoiceAnswer(req, res, tropo, phone, call, asnwer) {
     // done?
   }
 }
+
 function doVoiceStep(req, res, tropo, phone, call) {
   if (call.state == 0) {
     tropo.say(message('welcome'));
@@ -159,9 +160,6 @@ app.post('/api/tropo/text', function(req, res){
   }
 });
 
-app.listen(port);
-console.log('Server running');
-var call = new models.Call({type: 'SMS', phone: '13377945995', state: '1'});
 
 // start everything up
 models.connect(function (err, res) {
