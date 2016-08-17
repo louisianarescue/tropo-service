@@ -1,5 +1,5 @@
 var mongoose = require('mongoose')
-  , uristring = process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || 'mongodb://localhost/rescue'
+  , uristring = process.env.MONGODB_URI || 'mongodb://localhost/rescue'
   ;
 
 
