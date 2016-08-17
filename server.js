@@ -30,10 +30,12 @@ function fetchStatus(code, done) {
     })
     .on('response', function(response) {
       if (debug) console.log('fetch status success');
+      if (debug) console.dir(response);
       done(null, response.body);
     })
     .on('error', function(err) {
       if (debug) console.log('fetch status err');
+      if (debug) console.dir(err);
       done(err);
     });
 }
