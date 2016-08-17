@@ -30,7 +30,8 @@ module.exports.findCallBySession = function(session, done) {
 }
 
 module.exports.nextStep = function(call, done) {
-  Call.update({_id: call.id }, {$inc: {state:1}}, done);
+  var nextState = call.state + 1;
+  call.update({state: nextState}, done);
 }
 
 module.exports.connect = function(done) {
