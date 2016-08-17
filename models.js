@@ -30,7 +30,7 @@ module.exports.findCallBySession = function(session, done) {
 }
 
 module.exports.nextStep = function(call, done) {
-  Call.update({_id: call.id }}, {$inc: {state:1}}, done);
+  Call.update({_id: call.id }, {$inc: {state:1}}, done);
 }
 
 module.exports.createDb = function(done) {
