@@ -13,7 +13,7 @@ var Call = mongoose.model('Call', {
 module.exports.Call = Call;
 
 module.exports.createCall = function(data, done) {
-  var call new Call(data);
+  var call = new Call(data);
   call.save(done);
 }
 
