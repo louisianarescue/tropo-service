@@ -2,11 +2,11 @@ var mongoose = require('mongoose')
   , uristring = process.env.MONGODB_URI || 'mongodb://localhost/rescue'
   ;
 
-
 var Call = mongoose.model('Call', {
   type: String,
   number: String,
   state: Number,
+  session: String,
   createdAt: { type: Date, expires: 120, default: Date.now }
 });
 
@@ -19,7 +19,13 @@ module.exports.createCall = function(data, done) {
 
 module.exports.findCall = function(phone, done) {
   var query = Call.findOne({phone: phone});
-  query.select('number state type createdAt');
+  query.select('number state type session createdAt');
+  query.exec(done);
+}
+
+module.exports.findCallBySession = function(session, done) {
+  var query = Call.findOne({session: session});
+  query.select('number state type session createdAt');
   query.exec(done);
 }
 

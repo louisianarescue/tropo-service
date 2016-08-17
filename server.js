@@ -95,11 +95,17 @@ app.use(bodyParser.json());
 app.post('/api/tropo/voice', function(req, res){
   if (debug) console.dir(req.body);
   var phone = req.body.session.from.id;
+  var sessionId = req.body.session.id;
   var tropo = new tropowebapi.TropoWebAPI();
 
   models.findCall(phone, function(err, call) {
     if (err || !call) {
-      models.createCall({phone: phone, state: 0, type: 'call'}, function (err, call) {
+      models.createCall({
+        phone: phone,
+        state: 0,
+        type: 'call',
+        session: sessionId
+      }, function (err, call) {
         return doVoiceStep(req, res, tropo, phone, call)
       });
     } else {
@@ -111,10 +117,11 @@ app.post('/api/tropo/voice', function(req, res){
 app.post('/api/tropo/voice/answer', function(req, res){
   if (debug) console.dir(req.body);
   var phone = req.body.session.from.id;
+  var sessionId = req.body.session.id;
   var tropo = new tropowebapi.TropoWebAPI();
   var result = req.body.result.actions.interpretation;
 
-  models.findCall(phone, function(err, call) {
+  models.findCallBySession(sessionId, function(err, call) {
     if (err || !call) {
       tropo.say(message('unknown_error'));
       return tropoResponse(res, tropo);
@@ -168,7 +175,5 @@ models.connect(function (err, res) {
   } else {
     app.listen(port);
     console.log('Server running');
-    var call = new models.Call({type: 'SMS', phone: '13377945995', state: '1'});
-    console.dir(call);
   }
 });
